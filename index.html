@@ -1,0 +1,255 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<!-- Adapted to work with the getUserMedia API using code from http://wesbos.com/html5-video-face-detection-canvas-javascript/ -->
+	<head>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+
+
+		<meta charset="utf-8">
+		<title>HTML5 Face Detection - JavaScript getUserMedia API and Groucho Marx glasses!</title>
+		<style>
+body {
+	font-family: sans-serif;
+	font-size: 17px;
+	line-height: 24px;
+	color: #fff;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	text-align: center;
+	background-color: #111;
+}
+
+#info {
+	position: absolute;
+	width: 100%;
+	height: 30px;
+	top: 50%;
+	margin-top: -15px;
+}
+
+#output {
+	width: auto;
+	height: 80%;
+	background: black;
+}
+		</style>
+	</head>
+	<body>
+		<p id="info">Please allow access to your camera!</p>
+		<canvas id="output"></canvas>
+		<div style="position: absoulate; left:10px; top: 10px;"> 微笑狀態: <sapn id="status"> </span></div>
+
+		<script src="ccv.js"></script>
+		<script src="face.js"></script>
+		<script>
+
+// requestAnimationFrame shim
+(function() {
+	var i = 0,
+		lastTime = 0,
+		vendors = ['ms', 'moz', 'webkit', 'o'];
+	
+	while (i < vendors.length && !window.requestAnimationFrame) {
+		window.requestAnimationFrame = window[vendors[i] + 'RequestAnimationFrame'];
+		i++;
+	}
+	
+	if (!window.requestAnimationFrame) {
+		window.requestAnimationFrame = function(callback, element) {
+			var currTime = new Date().getTime(),
+				timeToCall = Math.max(0, 1000 / 60 - currTime + lastTime),
+				id = setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+			
+			lastTime = currTime + timeToCall;
+			return id;
+		};
+	}
+}());
+
+var App = {
+	start: function(stream) {
+		App.video.addEventListener('canplay', function() {
+			App.video.removeEventListener('canplay');
+			setTimeout(function() {
+				App.video.play();
+				App.canvas.style.display = 'inline';
+				App.info.style.display = 'none';
+				App.canvas.width = App.video.videoWidth;
+				App.canvas.height = App.video.videoHeight;
+				App.backCanvas.width = App.video.videoWidth / 4;
+				App.backCanvas.height = App.video.videoHeight / 4;
+				App.backContext = App.backCanvas.getContext('2d');
+			
+//				var w = 300 / 4 * 0.8,
+//					h = 270 / 4 * 0.8;
+				var w = 300 / 4 * 0.8,
+					h = 270 / 4 * 0.8;
+			
+				App.comp = [{
+					x: (App.video.videoWidth / 4 - w) / 2,
+					y: (App.video.videoHeight / 4 - h) / 2,
+					width: w, 
+					height: h,
+				}];
+			
+				App.drawToCanvas();
+			}, 500);
+		}, true);
+		
+		var domURL = window.URL || window.webkitURL;
+		App.video.src = domURL ? domURL.createObjectURL(stream) : stream;
+	},
+	denied: function() {
+		App.info.innerHTML = 'Camera access denied!<br>Please reload and try again.';
+	},
+	error: function(e) {
+		if (e) {
+			console.error(e);
+		}
+		App.info.innerHTML = 'Please go to about:flags in Google Chrome and enable the &quot;MediaStream&quot; flag.';
+	},
+	drawToCanvas: function() {
+		requestAnimationFrame(App.drawToCanvas);
+		
+		var video = App.video,
+			ctx = App.context,
+			backCtx = App.backContext,
+			m = 4,
+			w = 4,
+			i,
+			comp;
+		
+		ctx.drawImage(video, 0, 0, App.canvas.width, App.canvas.height);
+		
+		backCtx.drawImage(video, 0, 0, App.backCanvas.width, App.backCanvas.height);
+		
+		comp = ccv.detect_objects(App.ccv = App.ccv || {
+			canvas: App.backCanvas,
+			cascade: cascade,
+			interval: 4,
+			min_neighbors: 1
+		});
+		
+		if (comp.length) {
+			App.comp = comp;
+		}
+		
+		/*
+		for (i = App.comp.length; i--; ) {
+			ctx.drawImage(App.glasses, (App.comp[i].x - w / 2) * m, (App.comp[i].y - w / 2) * m, (App.comp[i].width + w) * m, (App.comp[i].height + w) * m);
+		}
+		*/
+	}
+};
+
+App.glasses = new Image();
+App.glasses.src = 'glasses.png';
+
+App.init = function() {
+	App.video = document.createElement('video');
+	App.backCanvas = document.createElement('canvas');
+	App.canvas = document.querySelector('#output');
+	App.canvas.style.display = 'none';
+	App.context = App.canvas.getContext('2d');
+	App.info = document.querySelector('#info');
+	
+	navigator.getUserMedia_ = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+	
+	try {
+		navigator.getUserMedia_({
+			video: true,
+			audio: false
+		}, App.start, App.denied);
+	} catch (e) {
+		try {
+			navigator.getUserMedia_('video', App.start, App.denied);
+		} catch (e) {
+			App.error(e);
+		}
+	}
+	
+	App.video.loop = App.video.muted = true;
+	App.video.load();
+
+
+
+      // save canvas image as data url (png format by default)
+//      var dataURL = 
+      // set canvasImg image src to dataURL
+      // so it can be saved as an image
+//      document.getElementById('canvasImg').src = dataURL;
+
+
+
+};
+
+App.init();
+
+function countSecond()
+{
+//console.log( App.canvas.toDataURL() );
+
+$("#status").html("偵測中...") 
+
+
+
+  $.ajax({
+        url: 'http://122.117.232.20/upd.php',
+        type: 'POST',
+        data: {
+//            type: 'base64',
+            // get your key here, quick and fast http://imgur.com/register/api_anon
+//            key: "cdf9007338b2f0b",
+            image:  App.canvas.toDataURL()
+        },
+        dataType: 'json'
+    }).success(function(imgdata) {
+      //  console.log(data);
+      theSmileAPI(imgdata);
+
+     //   w.location.href = data['upload']['links']['imgur_page'];
+    }).error(function(imgdata) {
+    //    console.log(imgdata);
+    //    w.close();
+    theSmileAPI(imgdata);
+
+    });
+
+
+
+}
+
+
+
+function theSmileAPI(imgdata)
+{
+		$.ajax({
+				  type: "POST",
+				  url: "http://api.skybiometry.com/fc/faces/detect.json",
+				  data: { 
+				  	api_key : "80e0837387494e558ee429a1bde49109" ,
+				  	api_secret : "53877022e2ae473b99a10f1d22a010f9",
+				  	urls: "http://122.117.232.20/"+imgdata.responseText,
+				  	attributes: "all"
+				  }
+				}).done(function(o) {
+					//	  console.log(o);
+				console.log('smiling:'); 
+				vals = o.photos[0].tags[0].attributes.smiling.value;
+				con = o.photos[0].tags[0].attributes.smiling.confidence;
+				$("#status").html(vals + ' confidence:'+ con + '<br> '+$("#status").html() ) 
+				  console.log(o.photos[0].tags[0].attributes.smiling);
+				});
+
+}
+
+//　 setimeout("countSecond( )", 10000)
+
+　 setInterval("countSecond( )", 10000)
+
+
+		</script>
+	</body>
+</html>
